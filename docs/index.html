@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AgriWing-100 Rev D</title>
+<meta name="description" content="AgriWing-100 Rev D: a 3D-printed crop-mapping flying wing. Structure, manufacturing, CFD and build dossier.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+:root{
+  --ground:#EEF1F4; --panel:#FFFFFF; --ink:#15202A; --ink2:#4A5866; --ink3:#6B7885; --rule:#C8D1DA; --rule2:#DDE3E9;
+  --accent:#C8501E; --blue:#2F66B8; --s1:#C8501E; --s2:#2F66B8;
+  --ok:#2E7D4F; --okbg:#E1F1E7; --warn:#9A6212; --warnbg:#F8EBD3; --fail:#B3261E; --failbg:#F8E0DE;
+  --failzone:rgba(179,38,30,.07);
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --ground:#10161C; --panel:#161E26; --ink:#E3E9EF; --ink2:#A4B1BD; --ink3:#83919E; --rule:#2C3845; --rule2:#212B35;
+    --accent:#E0703F; --blue:#6FA0EE; --s1:#DD5F2C; --s2:#5B8FE0;
+    --ok:#6CC592; --okbg:#173325; --warn:#E6B45C; --warnbg:#3A2C12; --fail:#F2786C; --failbg:#3E1B18;
+    --failzone:rgba(242,120,108,.08);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#10161C; --panel:#161E26; --ink:#E3E9EF; --ink2:#A4B1BD; --ink3:#83919E; --rule:#2C3845; --rule2:#212B35;
+  --accent:#E0703F; --blue:#6FA0EE; --s1:#DD5F2C; --s2:#5B8FE0;
+  --ok:#6CC592; --okbg:#173325; --warn:#E6B45C; --warnbg:#3A2C12; --fail:#F2786C; --failbg:#3E1B18;
+  --failzone:rgba(242,120,108,.08);
+}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font:15.5px/1.6 var(--body);padding-inline:clamp(16px,4vw,48px);padding-block:28px 64px}
+.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:56px}
+h1,h2,h3{font-family:var(--display);font-weight:600;letter-spacing:.01em;line-height:1.1;text-wrap:balance;margin:0}
+h1{font-size:clamp(44px,7vw,78px);font-weight:700;letter-spacing:-.005em}
+h2{font-size:clamp(28px,3.4vw,38px)}
+h3{font-size:22px;font-weight:600}
+p{margin:0;max-width:68ch}
+a{color:var(--blue)}
+code,.mono{font-family:var(--mono);font-size:.88em}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3)}
+.num{font-variant-numeric:tabular-nums;text-align:right;font-family:var(--mono);font-size:13.5px}
+/* title block */
+.tb{display:grid;grid-template-columns:1.6fr 1fr;border:1.5px solid var(--ink);background:var(--panel)}
+.tb-main{padding:22px 24px;display:flex;flex-direction:column;gap:12px;border-right:1.5px solid var(--ink)}
+.tb-main p{color:var(--ink2);font-size:16.5px}
+.tb-cells{display:grid;grid-template-columns:1fr 1fr}
+.cell{padding:10px 14px;border-bottom:1px solid var(--rule);border-right:1px solid var(--rule);display:flex;flex-direction:column;gap:2px}
+.cell:nth-child(2n){border-right:0}
+.cell .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3)}
+.cell .v{font-family:var(--display);font-size:24px;font-weight:600;font-variant-numeric:tabular-nums}
+.cell .v small{font-size:14px;color:var(--ink2);font-weight:500}
+.hero{margin:0;border:1.5px solid var(--ink);border-top:0;background:#2E3440}
+.hero img{display:block;width:100%;height:auto}
+.cap{font-size:13px;color:var(--ink3);padding:8px 2px 0}
+/* sections */
+section{display:grid;grid-template-columns:120px 1fr;gap:0 28px}
+.code{font-family:var(--display);font-size:15px;font-weight:600;letter-spacing:.08em;color:var(--accent);border-top:3px solid var(--accent);padding-top:8px;align-self:start;text-transform:uppercase}
+.body{display:flex;flex-direction:column;gap:18px;border-top:1px solid var(--rule);padding-top:8px;min-width:0}
+.lede{font-size:17px;color:var(--ink)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.panel{background:var(--panel);border:1px solid var(--rule);padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.panel h3{font-size:20px}
+.panel.was{border-top:4px solid var(--s1)}
+.panel.now{border-top:4px solid var(--s2)}
+ul.clean{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
+ul.clean li{max-width:62ch}
+figure{margin:0}
+figure img{display:block;width:100%;height:auto;border:1px solid var(--rule);background:#2E3440}
+.imgs{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.figs3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1px solid var(--rule);background:var(--panel)}
+.kpi{padding:12px 14px;border-right:1px solid var(--rule2);display:flex;flex-direction:column;gap:2px}
+.kpi:last-child{border-right:0}
+.kpi .k{font-size:12.5px;color:var(--ink2)}
+.kpi .v{font-family:var(--display);font-size:28px;font-weight:600;font-variant-numeric:tabular-nums}
+.kpi .v small{font-size:15px;color:var(--ink2);font-weight:500}
+/* charts */
+.chartbox{background:var(--panel);border:1px solid var(--rule);padding:14px 12px 8px;overflow-x:auto}
+.chart{width:100%;min-width:560px;height:auto;display:block}
+.chart .grid{stroke:var(--rule2);stroke-width:1}
+.chart .axis{stroke:var(--ink3);stroke-width:1}
+.chart .axis1{stroke:var(--fail);stroke-width:1.5;stroke-dasharray:4 3}
+.chart .failzone{fill:var(--failzone)}
+.chart .tick{fill:var(--ink3);font:11.5px var(--mono)}
+.chart .lab{fill:var(--ink2);font:12px var(--body)}
+.chart .rowlab{fill:var(--ink);font:13px var(--body)}
+.chart .val{fill:var(--ink);font:500 12px var(--mono)}
+.chart .conn{stroke:var(--ink3);stroke-width:1.5;opacity:.55}
+.chart .s1{fill:var(--s1);stroke:var(--panel);stroke-width:2}
+.chart .s2{fill:var(--s2);stroke:var(--panel);stroke-width:2}
+.chart .s2dot{fill:var(--s2);stroke:var(--panel);stroke-width:2}
+.chart .l2{fill:none;stroke:var(--s2);stroke-width:2}
+.chart .a2{fill:var(--s2);opacity:.12}
+.chart .mark{stroke:var(--ink3);stroke-width:1;stroke-dasharray:3 3}
+.chart .env{fill:var(--s2);fill-opacity:.1;stroke:var(--s2);stroke-width:2}
+.chart .oldline{fill:none;stroke:var(--ink3);stroke-width:1.5;stroke-dasharray:5 4}
+.chart .gust{stroke:var(--s1);stroke-width:1.5;stroke-dasharray:6 4}
+.chart .hit{fill:transparent}
+.chart .hit:hover{fill:var(--ink);fill-opacity:.05}
+.chart .pt:hover circle,.chart .pt:hover rect{stroke:var(--ink)}
+.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:var(--ink2);padding:0 6px 6px}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.sw1{width:11px;height:11px;border-radius:50%;background:var(--s1);display:inline-block}
+.sw2{width:11px;height:11px;border-radius:2px;background:var(--s2);display:inline-block}
+/* tables */
+.tw{overflow-x:auto;border:1px solid var(--rule);background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--rule2);text-align:left;vertical-align:top}
+thead th{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);font-weight:500;background:var(--ground);white-space:nowrap}
+tbody th{font-weight:500}
+tr.tot td,tr.tot th{font-weight:600;border-top:1.5px solid var(--ink);border-bottom:0}
+.pill{display:inline-block;font:600 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:3px}
+.pill.ok{color:var(--ok);background:var(--okbg)} .pill.warn{color:var(--warn);background:var(--warnbg)} .pill.fail{color:var(--fail);background:var(--failbg)}
+/* steps */
+ol.steps{list-style:none;margin:0;padding:0;counter-reset:s;display:flex;flex-direction:column;border-left:2px solid var(--rule)}
+ol.steps>li{counter-increment:s;position:relative;padding:4px 0 16px 34px;max-width:78ch}
+ol.steps>li::before{content:counter(s);position:absolute;left:-13px;top:2px;width:24px;height:24px;border-radius:50%;background:var(--panel);border:2px solid var(--accent);color:var(--accent);font:600 12px/20px var(--mono);text-align:center}
+ol.steps b{font-weight:600}
+.phase{font-family:var(--display);font-size:19px;font-weight:600;margin:6px 0 10px -2px;color:var(--ink2)}
+.note{border-left:3px solid var(--warn);background:var(--warnbg);padding:10px 14px;max-width:78ch}
+.note.bad{border-color:var(--fail);background:var(--failbg)}
+dl.spec{display:grid;grid-template-columns:max-content 1fr;gap:6px 18px;margin:0}
+dl.spec dt{font-family:var(--mono);font-size:12.5px;color:var(--ink3)}
+dl.spec dd{margin:0}
+.files{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px 18px;font-family:var(--mono);font-size:13px;color:var(--ink2)}
+@media (max-width:820px){
+  section{grid-template-columns:1fr;gap:8px}
+  .code{border-top-width:2px}
+  .tb{grid-template-columns:1fr}.tb-main{border-right:0;border-bottom:1.5px solid var(--ink)}
+  .two,.imgs{grid-template-columns:1fr}.figs3{grid-template-columns:1fr}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.kpi:nth-child(2){border-right:0}.kpi:nth-child(-n+2){border-bottom:1px solid var(--rule2)}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+<header>
+  <div class="tb">
+    <div class="tb-main">
+      <span class="eyebrow">AgriWing-100 · 3D-printed mapping flying wing · structure, build &amp; CFD dossier · Rev D</span>
+      <h1>AgriWing-100 Rev D</h1>
+      <p>A 1-metre blended flying wing that maps crops in RGB and near-infrared for plant-health analysis. Rev D applies what the Dart-80 build taught: the wing bending now runs through a straight carbon carry-through instead of three belly bolts, every wing part is a solid model for the slicer, and every part was checked for a real way in and for support-free printing. That audit also found and fixed eight faults that were in Rev C.</p>
+    </div>
+    <div class="tb-cells">
+      <div class="cell"><span class="k">All-up mass</span><span class="v">1234 <small>g</small></span></div>
+      <div class="cell"><span class="k">Span</span><span class="v">1.04 <small>m</small></span></div>
+      <div class="cell"><span class="k">Cruise L/D (CFD)</span><span class="v">12.4</span></div>
+      <div class="cell"><span class="k">Endurance @ 15.5 m/s</span><span class="v">55–78 <small>min</small></span></div>
+      <div class="cell"><span class="k">Printed parts</span><span class="v">17 <small>/ 376 g</small></span></div>
+      <div class="cell"><span class="k">Parts cost</span><span class="v">$536</span></div>
+    </div>
+  </div>
+  <figure class="hero"><img src="img/agw_hero.webp" alt="AgriWing-100 rendered in Fusion: white blended wing body with red elevons, blended winglets and a pusher propeller" width="1400" height="856"></figure>
+  <p class="cap">Fusion model, Rev D. Red = elevons. Everything white is printed in LW-ASA.</p>
+</header>
+
+<section id="changed">
+  <div class="code">Verdict</div>
+  <div class="body">
+    <h2>What changed from Rev C, and why</h2>
+    <p class="lede">Rev C looked finished. Checked the way the Dart-80 was checked, it had a weak wing joint, parts that could not move or be assembled, and parts that could not be printed as drawn. All of them are fixed in Rev D.</p>
+    <div class="tw"><table>
+      <thead><tr><th>Area</th><th>Rev C</th><th>Rev D</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Wing bending across the body</th><td>Two swept 6×4 tubes ending in the centre body; the moment crossed the y = 0 seam through 3 M3 inserts on the belly. SF ≈ 1.1 at ultimate.</td><td>Straight carry-through: Ø6 solid carbon joiner across the body, 8×6 tube in each wing. SF 3.2. The seam no longer carries wing bending.</td></tr>
+        <tr><th scope="row">Wing panels</th><td>0.6 mm shells with ribs and sleeves.</td><td>Solid models; the slicer sets walls and infill (2 walls + 6% gyroid), with walls around every bore.</td></tr>
+        <tr><th scope="row">Elevons</th><td>Flat front face 0.5 mm behind the hinge: jammed beyond about ±10°. Three wing ribs ran through the elevon. Outer elevon had no drive at all.</td><td>Round nose in a cove (0.6 mm gap): free to ±30°. Ribs cleared. A Ø2 carbon torque rod couples both halves.</td></tr>
+        <tr><th scope="row">Spar path</th><td>Two thin slices inside W2 blocked the spar bore.</td><td>New straight bore, verified clear end to end.</td></tr>
+        <tr><th scope="row">Servos</th><td>Servo case 1.4 mm into its cover.</td><td>Servos seated 2.4 mm higher; screw holes, arms and pushrods follow.</td></tr>
+        <tr><th scope="row">Hatch</th><td>Front "tongue" only rested on a ledge; two rear magnets held the whole hatch against suction.</td><td>Front hood + tongue lock the front edge. Tilt the rear 4°, slide aft to open.</td></tr>
+        <tr><th scope="row">Control horn</th><td>Printed in foamed LW-ASA, a floating plate in the print.</td><td>1.5 mm G10 horn bonded in a slot.</td></tr>
+        <tr><th scope="row">Printability</th><td>Hatch interior (232 cm²), winglet curve (60 cm²), centre-body root ribs (bridges over 100 mm) needed support.</td><td>Re-oriented and re-shaped: nothing needs support except a brim on three parts and a raft under the 0.8 mm servo covers.</td></tr>
+      </tbody>
+    </table></div>
+    <div class="kpis">
+      <div class="kpi"><span class="k">Printed mass</span><span class="v">376 <small>g (Rev C 332)</small></span></div>
+      <div class="kpi"><span class="k">All-up mass</span><span class="v">1234 <small>g (Rev C 1152)</small></span></div>
+      <div class="kpi"><span class="k">CG / static margin</span><span class="v">69.5 <small>mm / 6.2 %</small></span></div>
+      <div class="kpi"><span class="k">Print time</span><span class="v">32.1 <small>h</small></span></div>
+    </div>
+  </div>
+</section>
+
+<section id="structure">
+  <div class="code">Structure</div>
+  <div class="body">
+    <h2>A straight carry-through spar</h2>
+    <p>At 6 g ultimate (4 g limit × 1.5) and 1234 g, the Schrenk lift distribution puts 8.0 N·m of bending on the centreline and 4.1 N·m at the wing root. In Rev C that moment had to cross the centre body from one swept spar socket to the other, and the only tie across the y = 0 seam was three M3 inserts near the belly, all on the tension side with a 30 mm lever arm. That is the Dart-80's original mistake again, so it gets the Dart-80's fix: one straight load path.</p>
+    <ul class="clean">
+      <li><b>Joiner:</b> Ø6 solid pultruded carbon rod, 550 mm, at x = 145 mm, z = 2.3 mm. It passes through the rear centre-body pieces on two 7 mm webs per side and slides 140 mm into each wing tube.</li>
+      <li><b>Wing tube:</b> 8×6 carbon, glued in W1 and W2 from the root to y = 438. The line was chosen where the thinnest section still leaves 1.6 mm of wall around the Ø8.1 bore.</li>
+      <li><b>Torsion:</b> the lift line is ahead of the spar at the root; a Ø3 carbon pin at x = 60 (85 mm ahead) takes the root torque, 0.13 N·m ultimate. The magnets only hold the wing on.</li>
+      <li><b>Everything slides along y:</b> joiner, pin, magnets and the new seam dowels all point spanwise, so a wing goes on and off in one straight move (the Dart-80 lesson about mixed directions).</li>
+    </ul>
+    <div class="imgs">
+      <figure><img src="img/agw_xray_top.webp" alt="Top x-ray: the straight carbon line runs tip to tip at the same chordwise station through both wings and the centre body" width="1400" height="856" loading="lazy"><figcaption class="cap">Plan x-ray: joiner and wing tubes on one straight line; the servo bays, magnets and pins are visible.</figcaption></figure>
+      <figure><img src="img/agw_xray_root.webp" alt="Close x-ray of the wing root showing the wing tube, joiner, anti-rotation pin and magnet pockets" width="1400" height="856" loading="lazy"><figcaption class="cap">Root joint: 8×6 wing tube over the Ø6 joiner, Ø3 pin at x = 60, two magnets per side.</figcaption></figure>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>Check (ultimate)</th><th>Rev</th><th class="num">Load</th><th class="num">Allowable</th><th>Unit</th><th>Margin</th><th>Note</th></tr></thead>
+      <tbody><tr><th scope="row">6x4 swept spar at the wing root (y 130)</th><td>Rev C</td><td class="num">257.36</td><td class="num">700</td><td>MPa</td><td><span class="pill ok">SF 2.7</span></td><td></td></tr>
+<tr><th scope="row">Centre seam: 3 M3 inserts on the belly carry the wing bending</th><td>Rev C</td><td class="num">133.74</td><td class="num">150</td><td>N per insert</td><td><span class="pill fail">SF 1.1</span></td><td>couple arm ~30 mm, two inserts effective</td></tr>
+<tr><th scope="row">O6 solid carbon joiner at the centreline</th><td>Rev D</td><td class="num">378.4</td><td class="num">1200</td><td>MPa</td><td><span class="pill ok">SF 3.2</span></td><td></td></tr>
+<tr><th scope="row">8x6 wing tube at the root (y 130)</th><td>Rev D</td><td class="num">119.77</td><td class="num">700</td><td>MPa</td><td><span class="pill ok">SF 5.8</span></td><td></td></tr>
+<tr><th scope="row">Wing tube bore in W1 (bearing, 307 mm bonded length)</th><td>Rev D</td><td class="num">0.03</td><td class="num">8</td><td>MPa</td><td><span class="pill ok">SF 244.3</span></td><td></td></tr>
+<tr><th scope="row">Joiner webs in the centre body (4 webs, bearing on O6)</th><td>Rev D</td><td class="num">0.36</td><td class="num">8</td><td>MPa</td><td><span class="pill ok">SF 22.3</span></td><td>web 7 mm thick</td></tr>
+<tr><th scope="row">Anti-rotation pin O3 (85 mm ahead of the spar), bearing</th><td>Rev D</td><td class="num">0.13</td><td class="num">8</td><td>MPa</td><td><span class="pill ok">SF 61.6</span></td><td>root torque 0.86 N·m</td></tr>
+<tr><th scope="row">Magnets vs winglet side force (beta 10 deg, 25 m/s)</th><td>Rev D</td><td class="num">1.3</td><td class="num">40</td><td>N</td><td><span class="pill ok">SF 30.8</span></td><td>wings slide along y: drag has no pull-off component</td></tr>
+<tr><th scope="row">Servo torque at 25 m/s, 20 deg (ES08MD II 0.196 N·m)</th><td>Rev D</td><td class="num">0.12</td><td class="num">0.2</td><td>N·m</td><td><span class="pill warn">SF 1.6</span></td><td>hinge moment 0.165 N·m</td></tr>
+<tr><th scope="row">G10 horn bond (160 mm² epoxy)</th><td>Rev D</td><td class="num">0.08</td><td class="num">10</td><td>MPa</td><td><span class="pill ok">SF 128.7</span></td><td></td></tr>
+<tr><th scope="row">Elevon torque rod O2 (elevon 2 share 40 %)</th><td>Rev D</td><td class="num">42.11</td><td class="num">80</td><td>MPa</td><td><span class="pill warn">SF 1.9</span></td><td></td></tr>
+<tr><th scope="row">Hatch retention (Cp -1.2 at 25 m/s): 2 magnets + front hood</th><td>Rev D</td><td class="num">10.75</td><td class="num">40</td><td>N</td><td><span class="pill ok">SF 3.7</span></td><td></td></tr>
+<tr><th scope="row">Motor mount: 4 M3 inserts, 12 N thrust x 1.5</th><td>Rev D</td><td class="num">4.5</td><td class="num">150</td><td>N per insert</td><td><span class="pill ok">SF 33.3</span></td><td></td></tr></tbody>
+    </table></div>
+    <p class="cap">Allowables are conservative assumptions for foamed LW-ASA (0.6 g/cm³: 5 MPa across layers, 8 MPa bearing, 150 N per M3 insert) and datasheet values for carbon. Print the coupons listed under Test before flying.</p>
+  </div>
+</section>
+
+<section id="wing">
+  <div class="code">Wing</div>
+  <div class="body">
+    <h2>Solid wing parts and a hinge that moves</h2>
+    <p>Each wing part is now the outer shape minus its functional voids only: tube and pin bores, seam dowels, magnet pockets, the servo bay, the lead channel and the hinge. The slicer puts two walls around every bore, so each carbon part sits in a printed sleeve tied to the skins by the infill. Printed at 2 walls and 6% gyroid, the solid W1 weighs about the same as Rev C's ribbed shell.</p>
+    <p>The elevon hinge was rebuilt. The elevon nose is a cone around the hinge axis at the local half-thickness (4.1 mm at the root, 2.7 at the tip), running in a matching cove with 0.6 mm clearance, and the wing lip was relieved wherever the elevon passes over ±32°. The printed knuckles and the Ø1.75 filament pin are kept. The inboard elevon end is cut square to the hinge axis, so the elevon slides off its knuckles and deflects without touching the wing root.</p>
+    <div class="figs3">
+      <figure><img src="img/agw_hinge_0.webp" alt="Section through the hinge at y = 230: round elevon nose inside the wing cove, torque rod hole visible" width="1400" height="856" loading="lazy"><figcaption class="cap">Section at y = 230, neutral.</figcaption></figure>
+      <figure><img src="img/agw_hinge_up25.webp" alt="Same section with the elevon 25 degrees trailing edge up" width="1400" height="856" loading="lazy"><figcaption class="cap">25° up: the nose turns inside the cove.</figcaption></figure>
+      <figure><img src="img/agw_hinge_dn25.webp" alt="Same section with the elevon 25 degrees trailing edge down" width="1400" height="856" loading="lazy"><figcaption class="cap">25° down.</figcaption></figure>
+    </div>
+    <ul class="clean">
+      <li><b>Torque rod:</b> Rev C had the horn on the inboard elevon only and the outboard elevon floating on the round pin. A Ø2 carbon rod at 80% chord now runs through both halves (bonded), so they move as one. The rod path keeps ≥0.9 mm of wall despite the 7° washout.</li>
+      <li><b>G10 horn:</b> 1.5 mm G10 in a 1.7 mm slot, pushrod geometry unchanged. Servo margin at 25 m/s with 20° elevon is 1.6 on an ES08MD II.</li>
+      <li><b>Servo bay:</b> servos seated 2.4 mm higher so the case clears the conformal cover; the bay end is a 45° stepped roof instead of a 35 mm bridge.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="audit">
+  <div class="code">Audit</div>
+  <div class="body">
+    <h2>Every part checked for a way in</h2>
+    <p class="lede">Each part was moved along the direction it has to travel and intersected with its neighbours at several distances; any overlap means it cannot get there. Deflections were checked the same way by rotating the elevons about the hinge axis. All results below are zero intersection.</p>
+    <div class="tw"><table>
+      <thead><tr><th>Joint / motion</th><th>Direction</th><th>Result</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Wing unit off the centre body (joiner, pin, magnets)</th><td>+y, 0.3–160 mm</td><td><span class="pill ok">clear</span></td></tr>
+        <tr><th scope="row">W2 + winglet onto the W1 tube; winglet onto W2</th><td>+y</td><td><span class="pill ok">clear</span></td></tr>
+        <tr><th scope="row">Joiner through the centre body</th><td>+y, 560 mm</td><td><span class="pill ok">clear</span></td></tr>
+        <tr><th scope="row">Elevons off their knuckles</th><td>square to hinge, 15 mm</td><td><span class="pill ok">clear</span></td></tr>
+        <tr><th scope="row">Elevon deflection, both sides, with horn</th><td>−30° … +30°</td><td><span class="pill ok">clear</span></td></tr>
+        <tr><th scope="row">Centre-body halves, front/rear pieces</th><td>±y, ±x</td><td><span class="pill ok">clear</span></td></tr>
+        <tr><th scope="row">Hatch: locked front, tilt 4° and slide aft</th><td>+z blocked, then rotate + x</td><td><span class="pill ok">as designed</span></td></tr>
+        <tr><th scope="row">All printed parts vs. each other, hardware, cells, cameras, servos</th><td>at rest</td><td><span class="pill ok">no overlap</span></td></tr>
+      </tbody>
+    </table></div>
+    <div class="imgs">
+      <figure><img src="img/agw_exploded.webp" alt="Exploded view of all printed parts and carbon parts along their assembly directions" width="1400" height="856" loading="lazy"><figcaption class="cap">Exploded along the real assembly directions: every wing part travels along y.</figcaption></figure>
+      <figure><img src="img/agw_exploded_top.webp" alt="Plan view of the exploded parts" width="1400" height="856" loading="lazy"><figcaption class="cap">Plan view of the same set.</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section id="print">
+  <div class="code">Print</div>
+  <div class="body">
+    <h2>Printability: support-free on a 256 mm bed</h2>
+    <p>Every STL was put in its print orientation and searched for faces within 45° of horizontal facing down. Orientations were chosen per part by scoring ten candidates, then the geometry was changed where the best orientation still left a ceiling:</p>
+    <ul class="clean">
+      <li><b>Centre-body front pieces</b> print root-rib down; the battery rails were thin fins that became floating plates, and now have 45° flanks that double as cell cradles.</li>
+      <li><b>Rear pieces</b> print motor-face down; the new joiner webs got a 45° V and the joiner bore a teardrop.</li>
+      <li><b>Hatch</b> stands on its side edge (1.3 cm² of overhang instead of 232 cm² dome-down).</li>
+      <li><b>Winglets</b> stand on the leading edge with a brim (4 cm² instead of 60 cm²).</li>
+      <li><b>Joint faces</b> of W2 and the winglet were made exactly planar so they sit flat on the bed.</li>
+    </ul>
+    <div class="imgs">
+      <figure><img src="img/agw_print_plates.webp" alt="All printed parts on 256 mm plates in their print orientations" width="1400" height="856" loading="lazy"><figcaption class="cap">All parts in print orientation, one per plate.</figcaption></figure>
+      <figure><img src="img/agw_print_plates_top.webp" alt="Plan view of the build plates; every part stays inside its plate" width="1400" height="856" loading="lazy"><figcaption class="cap">Plan (orthographic): everything fits the 256 × 256 bed.</figcaption></figure>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>Part</th><th>Orientation</th><th class="num">Height mm</th><th class="num">Footprint mm</th><th>Support</th><th class="num">Mass g</th><th class="num">Hours</th></tr></thead>
+      <tbody><tr><th scope="row"><code>CB_FrontRight</code></th><td>root-rib face (y = 130) on the bed</td><td class="num">130</td><td class="num">150</td><td>none</td><td class="num">37</td><td class="num">3.0</td></tr>
+<tr><th scope="row"><code>CB_FrontLeft</code></th><td>root-rib face (y = 130) on the bed</td><td class="num">130</td><td class="num">150</td><td>none</td><td class="num">37</td><td class="num">3.0</td></tr>
+<tr><th scope="row"><code>CB_RearRight</code></th><td>motor face (x = 246) on the bed</td><td class="num">151</td><td class="num">114</td><td>none</td><td class="num">35</td><td class="num">2.8</td></tr>
+<tr><th scope="row"><code>CB_RearLeft</code></th><td>motor face (x = 246) on the bed</td><td class="num">151</td><td class="num">114</td><td>none</td><td class="num">35</td><td class="num">2.8</td></tr>
+<tr><th scope="row"><code>Hatch</code></th><td>standing on its left edge, brim</td><td class="num">136</td><td class="num">128</td><td>brim</td><td class="num">19</td><td class="num">1.7</td></tr>
+<tr><th scope="row"><code>W1_R</code></th><td>standing on the root face</td><td class="num">185</td><td class="num">158</td><td>none</td><td class="num">48</td><td class="num">3.8</td></tr>
+<tr><th scope="row"><code>W1_L</code></th><td>standing on the root face</td><td class="num">185</td><td class="num">158</td><td>none</td><td class="num">48</td><td class="num">3.8</td></tr>
+<tr><th scope="row"><code>W2_R</code></th><td>standing on the y = 315 joint face</td><td class="num">125</td><td class="num">118</td><td>none</td><td class="num">24</td><td class="num">2.1</td></tr>
+<tr><th scope="row"><code>W2_L</code></th><td>standing on the y = 315 joint face</td><td class="num">125</td><td class="num">118</td><td>none</td><td class="num">24</td><td class="num">2.1</td></tr>
+<tr><th scope="row"><code>WingletBlend_R</code></th><td>standing on its leading edge, brim</td><td class="num">154</td><td class="num">84</td><td>brim</td><td class="num">17</td><td class="num">1.5</td></tr>
+<tr><th scope="row"><code>WingletBlend_L</code></th><td>standing on its leading edge, brim</td><td class="num">154</td><td class="num">84</td><td>brim</td><td class="num">17</td><td class="num">1.5</td></tr>
+<tr><th scope="row"><code>Elevon1_R</code></th><td>standing on the inboard end (square to the hinge)</td><td class="num">174</td><td class="num">43</td><td>none</td><td class="num">11</td><td class="num">1.0</td></tr>
+<tr><th scope="row"><code>Elevon1_L</code></th><td>standing on the inboard end (square to the hinge)</td><td class="num">174</td><td class="num">43</td><td>none</td><td class="num">11</td><td class="num">1.0</td></tr>
+<tr><th scope="row"><code>Elevon2_R</code></th><td>standing on the inboard end</td><td class="num">123</td><td class="num">53</td><td>none</td><td class="num">7</td><td class="num">0.7</td></tr>
+<tr><th scope="row"><code>Elevon2_L</code></th><td>standing on the inboard end</td><td class="num">123</td><td class="num">53</td><td>none</td><td class="num">7</td><td class="num">0.7</td></tr>
+<tr><th scope="row"><code>ServoCover_R</code></th><td>outer face up</td><td class="num">3</td><td class="num">35</td><td>2-layer raft</td><td class="num">0</td><td class="num">0.3</td></tr>
+<tr><th scope="row"><code>ServoCover_L</code></th><td>outer face up</td><td class="num">3</td><td class="num">35</td><td>2-layer raft</td><td class="num">0</td><td class="num">0.3</td></tr>
+<tr class="tot"><th scope="row">Total, 17 parts</th><td colspan="4">LW-ASA, Bambu 256 mm bed</td><td class="num">376</td><td class="num">32.1</td></tr></tbody>
+    </table></div>
+    <div class="two">
+      <div class="panel">
+        <h3>LW-ASA settings (Bambu, 0.4 nozzle)</h3>
+        <dl class="spec">
+          <dt>Density</dt><dd>0.6 g/cm³ (foamed); calibrate flow with a 20 mm cube</dd>
+          <dt>Wing parts</dt><dd>Solid models: 2 walls, 3 top/bottom, 6% gyroid</dd>
+          <dt>Centre body, hatch</dt><dd>Modelled thin-walled: 3 walls, infill off</dd>
+          <dt>Enclosure</dt><dd>Closed, 45–50 °C chamber for ASA</dd>
+        </dl>
+      </div>
+      <div class="panel">
+        <h3>Centre body details</h3>
+        <ul class="clean">
+          <li>Hatch front locked by a hood and tongue (below); two magnets at the rear.</li>
+          <li>10 mm centreline keel doubler inside the belly, between the camera windows, for belly landings.</li>
+          <li>Battery centroid at x = -23.9 mm, 6.8 mm forward of Rev C to keep the balance; the airspeed sensor sets the forward limit.</li>
+          <li>Receiver moved beside the flight controller, off the joiner line.</li>
+        </ul>
+      </div>
+    </div>
+    <figure><img src="img/agw_hatch_hood.webp" alt="Section through the hatch front showing the hood of the centre body over the hatch tongue" width="1400" height="856" loading="lazy"><figcaption class="cap">Hatch front: the centre-body hood overlaps the hatch tongue, 0.2 mm clearance.</figcaption></figure>
+  </div>
+</section>
+
+<section id="cfd">
+  <div class="code">CFD</div>
+  <div class="body">
+    <h2>Aerodynamics (OpenFOAM, Rev C geometry)</h2>
+    <p>The outer shape did not change in Rev D except for the hinge details, so the Rev C CFD still applies: simpleFoam, k-ω SST, half model, ≈0.8 M cells, 15 m/s. Neutral point x = 83.3 mm; with CG 69.5 mm the static margin is 6.2% and the wing needs almost no elevon reflex at cruise.</p>
+    <div class="tw"><table>
+      <thead><tr><th>α</th><th class="num">CL</th><th class="num">CD</th><th class="num">L/D</th><th class="num">Cm @ x=54</th></tr></thead>
+      <tbody><tr><th scope="row">1°</th><td class="num">0.002</td><td class="num">0.0224</td><td class="num">0.0</td><td class="num">+0.0188</td></tr>
+<tr><th scope="row">4.8°</th><td class="num">0.277</td><td class="num">0.0271</td><td class="num">10.2</td><td class="num">-0.0155</td></tr>
+<tr><th scope="row">7°</th><td class="num">0.435</td><td class="num">0.0353</td><td class="num">12.3</td><td class="num">-0.0365</td></tr>
+<tr><th scope="row">10°</th><td class="num">0.637</td><td class="num">0.0554</td><td class="num">11.5</td><td class="num">-0.0656</td></tr></tbody>
+    </table></div>
+    <div class="imgs">
+      <figure><img src="img/img_blended_cp_top.webp" alt="Upper surface pressure coefficient at cruise" width="1400" height="856" loading="lazy"><figcaption class="cap">Upper-surface Cp at cruise.</figcaption></figure>
+      <figure><img src="img/img_blended_wake.webp" alt="Wake plane behind the blended winglet showing a single compact tip vortex" width="1400" height="856" loading="lazy"><figcaption class="cap">Wake behind the blended winglet: one compact tip vortex.</figcaption></figure>
+    </div>
+    <figure><img src="img/img_polars.webp" alt="Lift, drag and pitching moment polars from the CFD alpha sweep" width="1400" height="856" loading="lazy"><figcaption class="cap">α sweep: linear lift, Cm crossing zero near cruise.</figcaption></figure>
+  </div>
+</section>
+
+<section id="mass">
+  <div class="code">Mass</div>
+  <div class="body">
+    <h2>Mass, balance and performance</h2>
+    <div class="tw"><table>
+      <thead><tr><th>Item</th><th class="num">g</th><th class="num">x mm</th><th class="num">$</th></tr></thead>
+      <tbody><tr><th scope="row">Centerbody, 4 printed pieces (LW-ASA)</th><td class="num">143.5</td><td class="num">83.1</td><td class="num">14</td></tr>
+<tr><th scope="row">Hatch (LW-ASA)</th><td class="num">19.0</td><td class="num">21.1</td><td class="num">2</td></tr>
+<tr><th scope="row">Wing W1 x2 (solid, 2 walls + 6 % gyroid)</th><td class="num">95.4</td><td class="num">99.2</td><td class="num">8</td></tr>
+<tr><th scope="row">Wing W2 x2 (solid)</th><td class="num">48.8</td><td class="num">153.3</td><td class="num">4</td></tr>
+<tr><th scope="row">Blended winglets x2 (solid)</th><td class="num">33.4</td><td class="num">198.0</td><td class="num">2</td></tr>
+<tr><th scope="row">Elevon 1 x2 (solid, round nose)</th><td class="num">21.4</td><td class="num">197.5</td><td class="num">2</td></tr>
+<tr><th scope="row">Elevon 2 x2 (solid, round nose)</th><td class="num">13.4</td><td class="num">231.1</td><td class="num">1</td></tr>
+<tr><th scope="row">Servo covers x2</th><td class="num">1.0</td><td class="num">103.1</td><td class="num">0</td></tr>
+<tr><th scope="row">Carbon joiner rod O6 solid, 550 mm</th><td class="num">24.1</td><td class="num">145.0</td><td class="num">9</td></tr>
+<tr><th scope="row">Carbon wing tubes 8x6, 2 x 307 mm</th><td class="num">20.9</td><td class="num">145.0</td><td class="num">10</td></tr>
+<tr><th scope="row">Carbon elevon torque rods O2, 2 x 280 mm</th><td class="num">2.8</td><td class="num">207.4</td><td class="num">3</td></tr>
+<tr><th scope="row">Carbon anti-rotation pins O3 (2) + seam dowels O3 (8)</th><td class="num">4.7</td><td class="num">150.0</td><td class="num">4</td></tr>
+<tr><th scope="row">G10 control horns 1.5 mm (2)</th><td class="num">2.0</td><td class="num">183.4</td><td class="num">3</td></tr>
+<tr><th scope="row">PETG filament hinge pins 1.75 mm (2)</th><td class="num">1.0</td><td class="num">200.0</td><td class="num">0</td></tr>
+<tr><th scope="row">Magnets 10x3 N52 (8)</th><td class="num">14.4</td><td class="num">60.0</td><td class="num">6</td></tr>
+<tr><th scope="row">M3 bolts + heat-set inserts (7), M2.5/M2 inserts, grommets</th><td class="num">16.0</td><td class="num">70.0</td><td class="num">8</td></tr>
+<tr><th scope="row">Servo EMAX ES08MD II (2)</th><td class="num">26.0</td><td class="num">103.9</td><td class="num">20</td></tr>
+<tr><th scope="row">Servo arms + 1.2 mm pushrods (2)</th><td class="num">3.0</td><td class="num">130.0</td><td class="num">3</td></tr>
+<tr><th scope="row">Raspberry Pi 5 4 GB + heatsink + SD</th><td class="num">56.0</td><td class="num">60.0</td><td class="num">75</td></tr>
+<tr><th scope="row">Camera Module 3 + NoIR (+720 nm LP) + cables</th><td class="num">16.0</td><td class="num">52.5</td><td class="num">65</td></tr>
+<tr><th scope="row">Matek H743-WLITE</th><td class="num">22.0</td><td class="num">117.0</td><td class="num">70</td></tr>
+<tr><th scope="row">ELRS receiver</th><td class="num">5.0</td><td class="num">128.0</td><td class="num">15</td></tr>
+<tr><th scope="row">Matek M10Q-5883 GPS</th><td class="num">8.0</td><td class="num">0.0</td><td class="num">30</td></tr>
+<tr><th scope="row">ASPD-4525 + pitot + tubing</th><td class="num">7.0</td><td class="num">-75.0</td><td class="num">40</td></tr>
+<tr><th scope="row">ESC 40 A</th><td class="num">25.0</td><td class="num">205.5</td><td class="num">20</td></tr>
+<tr><th scope="row">SunnySky X2216 1100 KV + cross mount</th><td class="num">73.0</td><td class="num">261.0</td><td class="num">30</td></tr>
+<tr><th scope="row">Folding prop 9x6 + spinner + adapter</th><td class="num">18.0</td><td class="num">288.0</td><td class="num">12</td></tr>
+<tr><th scope="row">BEC 5 V 5 A, wiring, XT30</th><td class="num">60.0</td><td class="num">40.0</td><td class="num">25</td></tr>
+<tr><th scope="row">Epoxy / CA (joints, tubes)</th><td class="num">8.0</td><td class="num">120.0</td><td class="num">0</td></tr>
+<tr><th scope="row">Li-ion 3S2P Molicel P45B flat + BMS</th><td class="num">445.0</td><td class="num">-23.9</td><td class="num">55</td></tr>
+<tr class="tot"><th scope="row">Total</th><td class="num">1234</td><td class="num">69.5</td><td class="num">536</td></tr></tbody>
+    </table></div>
+    <div class="kpis">
+      <div class="kpi"><span class="k">Cruise power (CFD drag)</span><span class="v">48 <small>W</small></span></div>
+      <div class="kpi"><span class="k">Cruise power (conservative)</span><span class="v">68 <small>W</small></span></div>
+      <div class="kpi"><span class="k">Endurance</span><span class="v">55–78 <small>min</small></span></div>
+      <div class="kpi"><span class="k">Stall</span><span class="v">9.8 <small>m/s</small></span></div>
+    </div>
+    <p class="cap">Performance is the Rev C CFD result scaled to Rev D weight at the same lift coefficient (power ∝ W^1.5). Plan on the lower endurance until a logged flight calibrates it.</p>
+  </div>
+</section>
+
+<section id="assembly">
+  <div class="code">Assembly</div>
+  <div class="body">
+    <h2>Assembly sequence</h2>
+    <p class="phase">Centre body</p>
+    <ol class="steps">
+      <li><b>Halves.</b> Bolt CB_FrontRight to CB_FrontLeft and CB_RearRight to CB_RearLeft (M3 into heat-set inserts), then front to rear.</li>
+      <li><b>Joiner.</b> Push the Ø6 × 550 mm carbon rod through the rear pieces from one root rib to the other so 140 mm sticks out each side. Glue the Ø3 anti-rotation pins into the front pieces at x = 60.</li>
+      <li><b>Electronics.</b> Battery on the rail cradles against the forward stop, Pi 5 on its standoffs, cameras on the belly windows, FC, receiver beside it, ESC aft. Hatch: tongue under the hood, lower the rear onto the magnets.</li>
+    </ol>
+    <p class="phase">Wings (each side)</p>
+    <ol class="steps" start="4" style="counter-reset:s 3">
+      <li><b>Tube into W1.</b> Epoxy the 8×6 tube into W1 from the root so it ends flush at the root face.</li>
+      <li><b>W2, then winglet.</b> Slide W2 onto the tube with the two Ø3 dowels (all along y) and epoxy the joint face; same for the winglet at y = 440.</li>
+      <li><b>Elevons.</b> Bond the Ø2 torque rod through both elevon halves, glue the G10 horn in its slot, seat the elevons on the knuckles square to the hinge line, push the Ø1.75 filament pin in from the tip.</li>
+      <li><b>Servo.</b> Seat the servo on its lugs (M2), arm through the slot, 1.2 mm Z-bend pushrod to the horn, cover on.</li>
+      <li><b>Mount.</b> Slide the wing onto the joiner and pin until the magnets pull it home.</li>
+    </ol>
+  </div>
+</section>
+
+<section id="test">
+  <div class="code">Test</div>
+  <div class="body">
+    <h2>Before the first flight</h2>
+    <ul class="clean">
+      <li><b>Coupons:</b> print three 10×10×80 LW-ASA bars standing up and snap them across the layers; they must hold ≥5 MPa. Pull-test one M3 heat-set insert in a printed block; it must hold ≥150 N.</li>
+      <li><b>Proof load:</b> support the centre body, load each wing to 4 g (≈24 N, 60% inboard of y = 300). No creak, full recovery.</li>
+      <li><b>Controls:</b> full throw ±25° without binding, both halves of each elevon move together, zero free play.</li>
+      <li><b>CG:</b> x = 69.5 mm, measured aft of the root quarter-chord point (x = 0 in the CAD, 95 mm behind the nose). Glide-test before powered flight.</li>
+    </ul>
+    <p class="phase">Limits of this analysis</p>
+    <ul class="clean">
+      <li>Hand analysis of beams and joints, not FEM. Foamed LW-ASA allowables are assumptions until the coupons are tested.</li>
+      <li>CFD is the Rev C geometry (fully turbulent, no propeller). The hinge-gap changes of Rev D are not modelled.</li>
+      <li>Vendor models (Raspberry Pi 5, Camera Module 3, EMAX servo, 21700 cells) are used for fit checks only and are not redistributed.</li>
+    </ul>
+  </div>
+</section>
+
+</div>
+
+</body>
+</html>

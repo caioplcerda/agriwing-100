@@ -1,0 +1,123 @@
+{
+ "polar": [
+  [
+   11,
+   0.718,
+   9.6,
+   38.4,
+   97,
+   64.2
+  ],
+  [
+   12,
+   0.603,
+   9.4,
+   41.8,
+   89,
+   64.4
+  ],
+  [
+   13,
+   0.514,
+   9.0,
+   46.2,
+   81,
+   63.0
+  ],
+  [
+   14,
+   0.443,
+   8.5,
+   51.7,
+   72,
+   60.6
+  ],
+  [
+   15,
+   0.386,
+   7.9,
+   58.3,
+   64,
+   57.6
+  ],
+  [
+   16,
+   0.339,
+   7.3,
+   66.1,
+   56,
+   54.2
+  ],
+  [
+   17,
+   0.301,
+   6.8,
+   75.1,
+   50,
+   50.7
+  ],
+  [
+   18,
+   0.268,
+   6.2,
+   85.3,
+   44,
+   47.2
+  ]
+ ],
+ "stall": 9.3,
+ "coverage": [
+  {
+   "alt_m": 40,
+   "gsd_cm": 1.18,
+   "swath_m": 54.4,
+   "line_spacing_m": 16.3,
+   "trigger_m": 6.1,
+   "trigger_s": 0.41,
+   "ha_per_flight": 80,
+   "blur_px_1_2000s": 0.63
+  },
+  {
+   "alt_m": 60,
+   "gsd_cm": 1.77,
+   "swath_m": 81.7,
+   "line_spacing_m": 24.5,
+   "trigger_m": 9.2,
+   "trigger_s": 0.61,
+   "ha_per_flight": 120,
+   "blur_px_1_2000s": 0.42
+  },
+  {
+   "alt_m": 80,
+   "gsd_cm": 2.36,
+   "swath_m": 108.9,
+   "line_spacing_m": 32.7,
+   "trigger_m": 12.2,
+   "trigger_s": 0.82,
+   "ha_per_flight": 160,
+   "blur_px_1_2000s": 0.32
+  },
+  {
+   "alt_m": 100,
+   "gsd_cm": 2.95,
+   "swath_m": 136.1,
+   "line_spacing_m": 40.8,
+   "trigger_m": 15.3,
+   "trigger_s": 1.02,
+   "ha_per_flight": 200,
+   "blur_px_1_2000s": 0.25
+  },
+  {
+   "alt_m": 120,
+   "gsd_cm": 3.54,
+   "swath_m": 163.3,
+   "line_spacing_m": 49.0,
+   "trigger_m": 18.4,
+   "trigger_s": 1.22,
+   "ha_per_flight": 240,
+   "blur_px_1_2000s": 0.21
+  }
+ ],
+ "cruise_endurance_min": 64,
+ "range_km": 57.6
+}

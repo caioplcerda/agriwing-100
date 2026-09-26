@@ -1,0 +1,134 @@
+{
+ "auw_kg": 1.234,
+ "n_ult": 6.0,
+ "M0": 8.02,
+ "M130": 4.12,
+ "V130": 24.2,
+ "allowables": {
+  "LW-ASA tension across layers": 5.0,
+  "LW-ASA bearing": 8.0,
+  "CF rod flexure (pultruded)": 1200.0,
+  "CF tube flexure (roll-wrapped)": 700.0,
+  "CF shear": 80.0,
+  "M3 heat-set insert pull-out in LW-ASA (N)": 150.0
+ },
+ "rows": [
+  {
+   "item": "6x4 swept spar at the wing root (y 130)",
+   "rev": "C",
+   "load": 257.36,
+   "cap": 700.0,
+   "unit": "MPa",
+   "sf": 2.7,
+   "note": ""
+  },
+  {
+   "item": "Centre seam: 3 M3 inserts on the belly carry the wing bending",
+   "rev": "C",
+   "load": 133.74,
+   "cap": 150.0,
+   "unit": "N per insert",
+   "sf": 1.1,
+   "note": "couple arm ~30 mm, two inserts effective"
+  },
+  {
+   "item": "O6 solid carbon joiner at the centreline",
+   "rev": "D",
+   "load": 378.4,
+   "cap": 1200.0,
+   "unit": "MPa",
+   "sf": 3.2,
+   "note": ""
+  },
+  {
+   "item": "8x6 wing tube at the root (y 130)",
+   "rev": "D",
+   "load": 119.77,
+   "cap": 700.0,
+   "unit": "MPa",
+   "sf": 5.8,
+   "note": ""
+  },
+  {
+   "item": "Wing tube bore in W1 (bearing, 307 mm bonded length)",
+   "rev": "D",
+   "load": 0.03,
+   "cap": 8.0,
+   "unit": "MPa",
+   "sf": 244.3,
+   "note": ""
+  },
+  {
+   "item": "Joiner webs in the centre body (4 webs, bearing on O6)",
+   "rev": "D",
+   "load": 0.36,
+   "cap": 8.0,
+   "unit": "MPa",
+   "sf": 22.3,
+   "note": "web 7 mm thick"
+  },
+  {
+   "item": "Anti-rotation pin O3 (85 mm ahead of the spar), bearing",
+   "rev": "D",
+   "load": 0.13,
+   "cap": 8.0,
+   "unit": "MPa",
+   "sf": 61.6,
+   "note": "root torque 0.86 N\u00b7m"
+  },
+  {
+   "item": "Magnets vs winglet side force (beta 10 deg, 25 m/s)",
+   "rev": "D",
+   "load": 1.3,
+   "cap": 40.0,
+   "unit": "N",
+   "sf": 30.8,
+   "note": "wings slide along y: drag has no pull-off component"
+  },
+  {
+   "item": "Servo torque at 25 m/s, 20 deg (ES08MD II 0.196 N\u00b7m)",
+   "rev": "D",
+   "load": 0.12,
+   "cap": 0.2,
+   "unit": "N\u00b7m",
+   "sf": 1.6,
+   "note": "hinge moment 0.165 N\u00b7m"
+  },
+  {
+   "item": "G10 horn bond (160 mm\u00b2 epoxy)",
+   "rev": "D",
+   "load": 0.08,
+   "cap": 10.0,
+   "unit": "MPa",
+   "sf": 128.7,
+   "note": ""
+  },
+  {
+   "item": "Elevon torque rod O2 (elevon 2 share 40 %)",
+   "rev": "D",
+   "load": 42.11,
+   "cap": 80.0,
+   "unit": "MPa",
+   "sf": 1.9,
+   "note": ""
+  },
+  {
+   "item": "Hatch retention (Cp -1.2 at 25 m/s): 2 magnets + front hood",
+   "rev": "D",
+   "load": 10.75,
+   "cap": 40.0,
+   "unit": "N",
+   "sf": 3.7,
+   "note": ""
+  },
+  {
+   "item": "Motor mount: 4 M3 inserts, 12 N thrust x 1.5",
+   "rev": "D",
+   "load": 4.5,
+   "cap": 150.0,
+   "unit": "N per insert",
+   "sf": 33.3,
+   "note": ""
+  }
+ ]
+}
