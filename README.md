@@ -77,6 +77,8 @@ tools/      helper to turn the dossier into a standalone page
 
 ## Build it
 
+Quick references: [PRINTING.md](PRINTING.md) (per-part orientation, settings, time) and [BOM.md](BOM.md) (everything to buy). STLs as one zip: see [Releases](../../releases/latest).
+
 1. **Print** the 17 STLs in LW-ASA (~0.6 g/cm³, enclosed printer) using the orientations in the dossier's *Print* section.
    - Wing parts: 2 walls, 6% gyroid.
    - Centre body and hatch: 3 walls, no infill.
